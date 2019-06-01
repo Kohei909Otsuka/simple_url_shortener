@@ -3,15 +3,14 @@ package store
 // see https://docs.aws.amazon.com/sdk-for-go/api/service/dynamodb/
 
 import (
-	"github.com/Kohei909Otsuka/simple_url_shortener/app/entity"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 )
 
 type UrlMapper interface {
-	Write(entity.OriginalUrl, entity.ShortenUrl) error
-	Read(entity.ShortenUrl) (entity.OriginalUrl, error)
+	Write(string, string) error
+	Read(string) (string, error)
 }
 
 // dynamo db implement
@@ -33,7 +32,7 @@ func genSess() (*session.Session, error) {
 	return globalSess, nil
 }
 
-func (dynamo DynamoDbUrlMapper) Write(origin entity.OriginalUrl, shorten entity.ShortenUrl) error {
+func (dynamo DynamoDbUrlMapper) Write(origin string, shorten string) error {
 	sess, err := genSess()
 	if err != nil {
 		return err
@@ -43,10 +42,10 @@ func (dynamo DynamoDbUrlMapper) Write(origin entity.OriginalUrl, shorten entity.
 	putParams := &dynamodb.PutItemInput{
 		Item: map[string]*dynamodb.AttributeValue{
 			"shorten": {
-				S: aws.String(string(shorten)),
+				S: aws.String(shorten),
 			},
 			"origin": {
-				S: aws.String(string(origin)),
+				S: aws.String(origin),
 			},
 		},
 		TableName: aws.String(dynamo.TableName),
@@ -60,18 +59,17 @@ func (dynamo DynamoDbUrlMapper) Write(origin entity.OriginalUrl, shorten entity.
 	return nil
 }
 
-func (dynamo *DynamoDbUrlMapper) Read(shorten entity.ShortenUrl) (entity.OriginalUrl, error) {
-	zeroValue := entity.OriginalUrl("")
+func (dynamo *DynamoDbUrlMapper) Read(shorten string) (string, error) {
 	sess, err := genSess()
 	if err != nil {
-		return zeroValue, err
+		return "", err
 	}
 
 	svc := dynamodb.New(sess)
 	getParams := &dynamodb.GetItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
 			"shorten": {
-				S: aws.String(string(shorten)),
+				S: aws.String(shorten),
 			},
 		},
 		TableName: aws.String(dynamo.TableName),
@@ -79,13 +77,13 @@ func (dynamo *DynamoDbUrlMapper) Read(shorten entity.ShortenUrl) (entity.Origina
 
 	result, err := svc.GetItem(getParams)
 	if err != nil {
-		return zeroValue, err
+		return "", err
 	}
 
 	if len(result.Item) == 0 {
-		return zeroValue, nil
+		return "", nil
 	}
 
 	fetched_origin := *result.Item["origin"].S
-	return entity.OriginalUrl(fetched_origin), nil
+	return fetched_origin, nil
 }

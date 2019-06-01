@@ -9,17 +9,20 @@ import (
 func ShortenUrl(origin string, store store.UrlMapper) (string, error) {
 	originUrl := entity.OriginalUrl(origin)
 	shortenUrl := originUrl.Shorten()
-	err := store.Write(originUrl, shortenUrl)
+	originUrlStr := string(originUrl)
+	shortenUrlStr := string(shortenUrl)
+
+	err := store.Write(originUrlStr, shortenUrlStr)
 	if err != nil {
-		return string(shortenUrl), errors.New("could not write to store")
+		return shortenUrlStr, errors.New("could not write to store")
 	}
-	return string(shortenUrl), nil
+	return shortenUrlStr, nil
 }
 
 func RestoreUrl(shorten string, store store.UrlMapper) (string, error) {
-	originUrl, err := store.Read(entity.ShortenUrl(shorten))
+	originUrlStr, err := store.Read(shorten)
 	if err != nil {
-		return string(originUrl), errors.New("could not read from store")
+		return originUrlStr, errors.New("could not read from store")
 	}
-	return string(originUrl), nil
+	return originUrlStr, nil
 }

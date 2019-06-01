@@ -2,7 +2,6 @@ package store_test
 
 import (
 	"fmt"
-	"github.com/Kohei909Otsuka/simple_url_shortener/app/entity"
 	"github.com/Kohei909Otsuka/simple_url_shortener/app/store"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -82,8 +81,8 @@ func TestMain(m *testing.M) {
 func TestDynamoDbWrite(t *testing.T) {
 	createTable()
 
-	origin := entity.OriginalUrl("http://original.com")
-	shorten := entity.ShortenUrl("http://shorten.com/abcdefg")
+	origin := "http://original.com"
+	shorten := "http://shorten.com/abcdefg"
 
 	dynamoStore := store.DynamoDbUrlMapper{TableName: "test_urls"}
 	err := dynamoStore.Write(origin, shorten)
@@ -97,7 +96,7 @@ func TestDynamoDbWrite(t *testing.T) {
 	getParams := &dynamodb.GetItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
 			"shorten": {
-				S: aws.String(string(shorten)),
+				S: aws.String(shorten),
 			},
 		},
 		TableName: aws.String(dynamoStore.TableName),
@@ -109,8 +108,8 @@ func TestDynamoDbWrite(t *testing.T) {
 	}
 
 	fetched_origin := *result.Item["origin"].S
-	if fetched_origin != string(origin) {
-		t.Errorf("Dynamo Write failed, should write %s but write %s", string(origin), fetched_origin)
+	if fetched_origin != origin {
+		t.Errorf("Dynamo Write failed, should write %s but write %s", origin, fetched_origin)
 	}
 
 	deleteTable()
@@ -119,8 +118,8 @@ func TestDynamoDbWrite(t *testing.T) {
 func TestDynamoDbRead(t *testing.T) {
 	createTable()
 
-	origin := entity.OriginalUrl("http://original.com")
-	shorten := entity.ShortenUrl("http://shorten.com/abcdefg")
+	origin := "http://original.com"
+	shorten := "http://shorten.com/abcdefg"
 
 	dynamoStore := store.DynamoDbUrlMapper{TableName: "test_urls"}
 
@@ -129,8 +128,8 @@ func TestDynamoDbRead(t *testing.T) {
 		t.Errorf("Dynamo Read faild %s", err)
 	}
 
-	if string(resultEmpty) != "" {
-		t.Errorf("Dynamo Read faild, should fetch empty but got %s", string(resultEmpty))
+	if resultEmpty != "" {
+		t.Errorf("Dynamo Read faild, should fetch empty but got %s", resultEmpty)
 	}
 
 	dynamoStore.Write(origin, shorten)

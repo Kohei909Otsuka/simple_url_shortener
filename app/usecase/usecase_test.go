@@ -1,7 +1,6 @@
 package usecase_test
 
 import (
-	"github.com/Kohei909Otsuka/simple_url_shortener/app/entity"
 	"github.com/Kohei909Otsuka/simple_url_shortener/app/usecase"
 	"os"
 	"testing"
@@ -9,13 +8,13 @@ import (
 
 type UrlMapperMock map[string]string
 
-func (m UrlMapperMock) Write(o entity.OriginalUrl, s entity.ShortenUrl) error {
+func (m UrlMapperMock) Write(o string, s string) error {
 	m[string(s)] = string(o)
 	return nil
 }
 
-func (m UrlMapperMock) Read(s entity.ShortenUrl) (entity.OriginalUrl, error) {
-	return entity.OriginalUrl(m[string(s)]), nil
+func (m UrlMapperMock) Read(s string) (string, error) {
+	return m[string(s)], nil
 }
 
 func TestMain(m *testing.M) {
