@@ -19,11 +19,22 @@ type DynamoDbUrlMapper struct {
 	TableName string
 }
 
+// re-use aws session
+var globalSess *session.Session
+
+func genSess() (*session.Session, error) {
+	if globalSess == nil {
+		globalSess, err := session.NewSession(&aws.Config{
+			Region:   aws.String("ap-northeast-1"),
+			Endpoint: aws.String("http://localhost:8000"),
+		})
+		return globalSess, err
+	}
+	return globalSess, nil
+}
+
 func (dynamo DynamoDbUrlMapper) Write(origin entity.OriginalUrl, shorten entity.ShortenUrl) error {
-	sess, err := session.NewSession(&aws.Config{
-		Region:   aws.String("ap-northeast-1"),
-		Endpoint: aws.String("http://localhost:8000"),
-	})
+	sess, err := genSess()
 	if err != nil {
 		return err
 	}
@@ -51,10 +62,7 @@ func (dynamo DynamoDbUrlMapper) Write(origin entity.OriginalUrl, shorten entity.
 
 func (dynamo *DynamoDbUrlMapper) Read(shorten entity.ShortenUrl) (entity.OriginalUrl, error) {
 	zeroValue := entity.OriginalUrl("")
-	sess, err := session.NewSession(&aws.Config{
-		Region:   aws.String("ap-northeast-1"),
-		Endpoint: aws.String("http://localhost:8000"),
-	})
+	sess, err := genSess()
 	if err != nil {
 		return zeroValue, err
 	}

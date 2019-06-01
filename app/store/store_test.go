@@ -11,14 +11,24 @@ import (
 	"testing"
 )
 
+// re-use aws session
+var globalSess *session.Session
+
+func genSess() (*session.Session, error) {
+	if globalSess == nil {
+		globalSess, err := session.NewSession(&aws.Config{
+			Region:   aws.String("ap-northeast-1"),
+			Endpoint: aws.String("http://localhost:8000"),
+		})
+		return globalSess, err
+	}
+	return globalSess, nil
+}
+
 // expecting dynamo db local is running
 // see https://hub.docker.com/r/amazon/dynamodb-local
 func createTable() {
-	fmt.Println("crate talbe is moving")
-	sess, _ := session.NewSession(&aws.Config{
-		Region:   aws.String("ap-northeast-1"),
-		Endpoint: aws.String("http://localhost:8000"),
-	})
+	sess, _ := genSess()
 	svc := dynamodb.New(sess)
 	input := &dynamodb.CreateTableInput{
 		AttributeDefinitions: []*dynamodb.AttributeDefinition{
@@ -46,10 +56,7 @@ func createTable() {
 }
 
 func deleteTable() {
-	sess, _ := session.NewSession(&aws.Config{
-		Region:   aws.String("ap-northeast-1"),
-		Endpoint: aws.String("http://localhost:8000"),
-	})
+	sess, _ := genSess()
 	svc := dynamodb.New(sess)
 	input := &dynamodb.DeleteTableInput{
 		TableName: aws.String("test_urls"),
@@ -84,10 +91,7 @@ func TestDynamoDbWrite(t *testing.T) {
 		t.Errorf("Dynamo Write failed, err is %s", err)
 	}
 
-	sess, _ := session.NewSession(&aws.Config{
-		Region:   aws.String("ap-northeast-1"),
-		Endpoint: aws.String("http://localhost:8000"),
-	})
+	sess, _ := genSess()
 
 	svc := dynamodb.New(sess)
 	getParams := &dynamodb.GetItemInput{
