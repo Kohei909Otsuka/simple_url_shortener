@@ -1,32 +1,48 @@
+# sam doc: https://github.com/awslabs/serverless-application-model/blob/master/docs
+# lambda doc: https://docs.aws.amazon.com/lambda/latest
+
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
   simple_url_shortener
-  
-  Sample SAM Template for simple_url_shortener
 
-# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
-    Timeout: 5
+    Timeout: 3
 
 Resources:
   HelloWorldFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: AWS::Serverless::Function
     Properties:
       CodeUri: hello-world/
       Handler: hello-world
       Runtime: go1.x
-      Tracing: Active # https://docs.aws.amazon.com/lambda/latest/dg/lambda-x-ray.html
+      Tracing: Active
       Events:
         CatchAll:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Type: Api
           Properties:
             Path: /hello
             Method: GET
-      Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
+      Environment:
         Variables:
           PARAM1: VALUE
+  ShortenFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: app/lambda/shorten/
+      Handler: shorten
+      Runtime: go1.x
+      Tracing: Active
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /
+            Method: POST
+      Environment:
+        Variables:
+          BASE_URL: https://shortener.com
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
@@ -41,3 +57,10 @@ Outputs:
   HelloWorldFunctionIamRole:
     Description: "Implicit IAM Role created for Hello World function"
     Value: !GetAtt HelloWorldFunctionRole.Arn
+
+  ShortenFunction:
+    Description: "shorten Lambda Function ARN"
+    Value: !GetAtt ShortenFunction.Arn
+  ShortenFunctionIamRole:
+    Description: "Implicit IAM Role created for shorten function"
+    Value: !GetAtt ShortenFunctionRole.Arn

@@ -24,8 +24,11 @@ var globalSess *session.Session
 func genSess() (*session.Session, error) {
 	if globalSess == nil {
 		globalSess, err := session.NewSession(&aws.Config{
-			Region:   aws.String("ap-northeast-1"),
-			Endpoint: aws.String("http://localhost:8000"),
+			Region: aws.String("ap-northeast-1"),
+			// TODO: dev時docker network name, test時localhost, prod時?と
+			// 環境変数でコントロールできる必要がある
+			// 現状だと単体テストが落ちる(devを優先した)
+			Endpoint: aws.String("http://dynamodb-local:8000"),
 		})
 		return globalSess, err
 	}
@@ -59,7 +62,7 @@ func (dynamo DynamoDbUrlMapper) Write(origin string, shorten string) error {
 	return nil
 }
 
-func (dynamo *DynamoDbUrlMapper) Read(shorten string) (string, error) {
+func (dynamo DynamoDbUrlMapper) Read(shorten string) (string, error) {
 	sess, err := genSess()
 	if err != nil {
 		return "", err
