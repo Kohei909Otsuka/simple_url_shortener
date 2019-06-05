@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"os"
 )
 
 type UrlMapper interface {
@@ -24,11 +25,8 @@ var globalSess *session.Session
 func genSess() (*session.Session, error) {
 	if globalSess == nil {
 		globalSess, err := session.NewSession(&aws.Config{
-			Region: aws.String("ap-northeast-1"),
-			// TODO: dev時docker network name, test時localhost, prod時?と
-			// 環境変数でコントロールできる必要がある
-			// 現状だと単体テストが落ちる(devを優先した)
-			Endpoint: aws.String("http://dynamodb-local:8000"),
+			Region:   aws.String(os.Getenv("AWS_REGION")),
+			Endpoint: aws.String(os.Getenv("AWS_ENDPOINT")),
 		})
 		return globalSess, err
 	}

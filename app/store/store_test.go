@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"os"
+	"os/exec"
 	"testing"
 )
 
@@ -16,16 +17,14 @@ var globalSess *session.Session
 func genSess() (*session.Session, error) {
 	if globalSess == nil {
 		globalSess, err := session.NewSession(&aws.Config{
-			Region:   aws.String("ap-northeast-1"),
-			Endpoint: aws.String("http://localhost:8000"),
+			Region:   aws.String(os.Getenv("AWS_REGION")),
+			Endpoint: aws.String(os.Getenv("AWS_ENDPOINT")),
 		})
 		return globalSess, err
 	}
 	return globalSess, nil
 }
 
-// expecting dynamo db local is running
-// see https://hub.docker.com/r/amazon/dynamodb-local
 func createTable() {
 	sess, _ := genSess()
 	svc := dynamodb.New(sess)
@@ -46,7 +45,7 @@ func createTable() {
 			ReadCapacityUnits:  aws.Int64(5),
 			WriteCapacityUnits: aws.Int64(5),
 		},
-		TableName: aws.String("test_urls"),
+		TableName: aws.String(os.Getenv("DYNAMO_TABLE")),
 	}
 	_, err := svc.CreateTable(input)
 	if err != nil {
@@ -58,7 +57,7 @@ func deleteTable() {
 	sess, _ := genSess()
 	svc := dynamodb.New(sess)
 	input := &dynamodb.DeleteTableInput{
-		TableName: aws.String("test_urls"),
+		TableName: aws.String(os.Getenv("DYNAMO_TABLE")),
 	}
 
 	_, err := svc.DeleteTable(input)
@@ -69,12 +68,32 @@ func deleteTable() {
 
 func TestMain(m *testing.M) {
 	// before
+	runCmd := "docker run -d -p 8000:8000 amazon/dynamodb-local"
+	runOut, runErr := exec.Command("/bin/sh", "-c", runCmd).Output()
+	if runErr != nil {
+		fmt.Printf("failed to start docker container. err: %s", runErr)
+		os.Exit(1)
+	}
+	containerId := string(runOut)
+
 	os.Setenv("BASE_URL", "https://shortener.com")
+	os.Setenv("AWS_REGION", "ap-northeast-1")
+	os.Setenv("AWS_ENDPOINT", "http://localhost:8000")
+	os.Setenv("DYNAMO_TABLE", "test_urls")
 
 	code := m.Run()
 
 	// after
+	rmCmd := fmt.Sprintf("docker container rm -f %s", containerId)
+	_, rmErr := exec.Command("/bin/sh", "-c", rmCmd).Output()
+	if rmErr != nil {
+		fmt.Printf("failed to rm docker container. err: %s", rmErr)
+		os.Exit(1)
+	}
 	os.Setenv("BASE_URL", "")
+	os.Setenv("AWS_REGION", "")
+	os.Setenv("AWS_ENDPOINT", "")
+	os.Setenv("DYNAMO_TABLE", "")
 	os.Exit(code)
 }
 
@@ -84,7 +103,7 @@ func TestDynamoDbWrite(t *testing.T) {
 	origin := "http://original.com"
 	shorten := "http://shorten.com/abcdefg"
 
-	dynamoStore := store.DynamoDbUrlMapper{TableName: "test_urls"}
+	dynamoStore := store.DynamoDbUrlMapper{TableName: os.Getenv("DYNAMO_TABLE")}
 	err := dynamoStore.Write(origin, shorten)
 	if err != nil {
 		t.Errorf("Dynamo Write failed, err is %s", err)
@@ -121,7 +140,7 @@ func TestDynamoDbRead(t *testing.T) {
 	origin := "http://original.com"
 	shorten := "http://shorten.com/abcdefg"
 
-	dynamoStore := store.DynamoDbUrlMapper{TableName: "test_urls"}
+	dynamoStore := store.DynamoDbUrlMapper{TableName: os.Getenv("DYNAMO_TABLE")}
 
 	resultEmpty, err := dynamoStore.Read(shorten)
 	if err != nil {

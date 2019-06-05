@@ -8,7 +8,7 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
-var dynamoStore = store.DynamoDbUrlMapper{"urls"}
+var dynamoStore = store.DynamoDbUrlMapper{TableName: os.Getenv("DYNAMO_TABLE")}
 
 type ShortenReq struct {
 	Origin string `json:"origin"`
