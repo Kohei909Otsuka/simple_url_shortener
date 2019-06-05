@@ -9,4 +9,3 @@ services:
       - aws-local
 networks:
   aws-local:
-    external: true

@@ -6,6 +6,7 @@ import (
 	"github.com/Kohei909Otsuka/simple_url_shortener/app/usecase"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"os"
 )
 
 var dynamoStore = store.DynamoDbUrlMapper{TableName: os.Getenv("DYNAMO_TABLE")}
@@ -24,7 +25,7 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	if err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: 400,
-			Body:       "colud not parse json",
+			Body:       "could not parse json",
 		}, nil
 	}
 

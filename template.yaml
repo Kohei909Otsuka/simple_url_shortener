@@ -43,6 +43,10 @@ Resources:
       Environment:
         Variables:
           BASE_URL: https://shortener.com
+          AWS_REGION: ap-northeast-1
+          DYNAMO_ENDPOINT: http://dynamodb-local:8000
+          DYNAMO_TABLE: dev_urls
+
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function

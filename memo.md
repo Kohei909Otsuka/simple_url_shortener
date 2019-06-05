@@ -6,7 +6,7 @@ lambdaが動いているcontainerから見えるようにする
 ```
 docker network create aws-local
 docker-compose up
-sam local start-api --docker-network aws-local
+sam local start-api --docker-network simple_url_shortener_aws-local
 ```
 
 # テスト

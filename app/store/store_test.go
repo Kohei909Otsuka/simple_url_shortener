@@ -18,7 +18,7 @@ func genSess() (*session.Session, error) {
 	if globalSess == nil {
 		globalSess, err := session.NewSession(&aws.Config{
 			Region:   aws.String(os.Getenv("AWS_REGION")),
-			Endpoint: aws.String(os.Getenv("AWS_ENDPOINT")),
+			Endpoint: aws.String(os.Getenv("DYNAMO_ENDPOINT")),
 		})
 		return globalSess, err
 	}
@@ -78,7 +78,7 @@ func TestMain(m *testing.M) {
 
 	os.Setenv("BASE_URL", "https://shortener.com")
 	os.Setenv("AWS_REGION", "ap-northeast-1")
-	os.Setenv("AWS_ENDPOINT", "http://localhost:8000")
+	os.Setenv("DYNAMO_ENDPOINT", "http://localhost:8000")
 	os.Setenv("DYNAMO_TABLE", "test_urls")
 
 	code := m.Run()
@@ -92,7 +92,7 @@ func TestMain(m *testing.M) {
 	}
 	os.Setenv("BASE_URL", "")
 	os.Setenv("AWS_REGION", "")
-	os.Setenv("AWS_ENDPOINT", "")
+	os.Setenv("DYNAMO_ENDPOINT", "")
 	os.Setenv("DYNAMO_TABLE", "")
 	os.Exit(code)
 }

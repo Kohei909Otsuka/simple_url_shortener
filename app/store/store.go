@@ -26,7 +26,7 @@ func genSess() (*session.Session, error) {
 	if globalSess == nil {
 		globalSess, err := session.NewSession(&aws.Config{
 			Region:   aws.String(os.Getenv("AWS_REGION")),
-			Endpoint: aws.String(os.Getenv("AWS_ENDPOINT")),
+			Endpoint: aws.String(os.Getenv("DYNAMO_ENDPOINT")),
 		})
 		return globalSess, err
 	}
