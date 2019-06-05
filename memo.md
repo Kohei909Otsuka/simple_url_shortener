@@ -4,9 +4,9 @@ dynamo db localの起動をネットワーク指定して、
 lambdaが動いているcontainerから見えるようにする
 
 ```
-docker network create lambda-local
+docker network create aws-local
 docker-compose up
-sam local start-api --docker-network lambda-local
+sam local start-api --docker-network aws-local
 ```
 
 # テスト

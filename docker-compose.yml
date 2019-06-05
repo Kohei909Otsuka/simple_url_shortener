@@ -6,7 +6,7 @@ services:
     ports:
       - 8000:8000
     networks:
-      - lambda-local
+      - aws-local
 networks:
-  lambda-local:
+  aws-local:
     external: true
