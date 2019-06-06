@@ -9,77 +9,47 @@ Description: >
 Globals:
   Function:
     Timeout: 3
+    Runtime: go1.x
+    Tracing: Active
+    Environment:
+      Variables:
+        BASE_URL: localhost:3000
+        AWS_REGION: ap-northeast-1
+        DYNAMO_ENDPOINT: http://dynamodb-local:8000
+        DYNAMO_TABLE: dev_urls
 
 Resources:
-  HelloWorldFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: hello-world/
-      Handler: hello-world
-      Runtime: go1.x
-      Tracing: Active
-      Events:
-        CatchAll:
-          Type: Api
-          Properties:
-            Path: /hello
-            Method: GET
-      Environment:
-        Variables:
-          PARAM1: VALUE
   ShortenFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: app/lambda/shorten/
       Handler: shorten
-      Runtime: go1.x
-      Tracing: Active
       Events:
         CatchAll:
           Type: Api
           Properties:
             Path: /
             Method: POST
-      Environment:
-        Variables:
-          BASE_URL: localhost:3000
-          AWS_REGION: ap-northeast-1
-          DYNAMO_ENDPOINT: http://dynamodb-local:8000
-          DYNAMO_TABLE: dev_urls
   RestoreFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: app/lambda/restore/
       Handler: restore
-      Runtime: go1.x
-      Tracing: Active
       Events:
         CatchAll:
           Type: Api
           Properties:
             Path: /{token}
             Method: GET
-      Environment:
-        Variables:
-          BASE_URL: localhost:3000
-          AWS_REGION: ap-northeast-1
-          DYNAMO_ENDPOINT: http://dynamodb-local:8000
-          DYNAMO_TABLE: dev_urls
 
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
   # Find out more about other implicit resources you can reference within SAM
   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-  HelloWorldAPI:
-    Description: "API Gateway endpoint URL for Prod environment for First Function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
-  HelloWorldFunction:
-    Description: "First Lambda Function ARN"
-    Value: !GetAtt HelloWorldFunction.Arn
-  HelloWorldFunctionIamRole:
-    Description: "Implicit IAM Role created for Hello World function"
-    Value: !GetAtt HelloWorldFunctionRole.Arn
+  API:
+    Description: "API Gateway endpoint URL for Prod environment"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod"
 
   ShortenFunction:
     Description: "shorten Lambda Function ARN"
@@ -87,3 +57,10 @@ Outputs:
   ShortenFunctionIamRole:
     Description: "Implicit IAM Role created for shorten function"
     Value: !GetAtt ShortenFunctionRole.Arn
+
+  RestoreFunction:
+    Description: "restore Lambda Function ARN"
+    Value: !GetAtt RestoreFunction.Arn
+  RestoreFunctionIamRole:
+    Description: "Implicit IAM Role created for restore function"
+    Value: !GetAtt RestoreFunction.Arn
