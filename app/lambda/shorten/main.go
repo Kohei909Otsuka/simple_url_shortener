@@ -18,9 +18,9 @@ type ShortenRes struct {
 	Shorten string `json:"shorten"`
 }
 
-func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var shortenReq ShortenReq
-	err := json.Unmarshal([]byte(request.Body), &shortenReq)
+	err := json.Unmarshal([]byte(req.Body), &shortenReq)
 
 	if err != nil {
 		return events.APIGatewayProxyResponse{

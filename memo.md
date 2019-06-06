@@ -32,7 +32,7 @@ dynamo
 ```
 aws dynamodb list-tables --endpoint-url http://localhost:8000
 
-aws dynamodb create-table --table-name 'urls' \
+aws dynamodb create-table --table-name 'dev_urls' \
   --attribute-definitions '[{"AttributeName":"shorten","AttributeType": "S"}]' \
   --key-schema '[{"AttributeName":"shorten","KeyType": "HASH"}]' \
   --provisioned-throughput '{"ReadCapacityUnits": 5,"WriteCapacityUnits": 5}' \
