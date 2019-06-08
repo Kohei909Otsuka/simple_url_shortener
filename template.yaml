@@ -13,12 +13,22 @@ Globals:
     Tracing: Active
     Environment:
       Variables:
-        BASE_URL: localhost:3000
-        AWS_REGION: ap-northeast-1
-        DYNAMO_ENDPOINT: http://dynamodb-local:8000
-        DYNAMO_TABLE: dev_urls
+        BASE_URL: https://kho21.com
+        AWS_MY_REGION: ap-northeast-1
+        DYNAMO_ENDPOINT: https://dynamodb.ap-northeast-1.amazonaws.com
+        DYNAMO_TABLE: !Ref DynamoTable
 
 Resources:
+  DynamoTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      TableName: prod_urls
+      PrimaryKey:
+        Name: shorten
+        Type: String
+      ProvisionedThroughput:
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
   ShortenFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -30,6 +40,9 @@ Resources:
           Properties:
             Path: /
             Method: POST
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DynamoTable
   RestoreFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -41,6 +54,9 @@ Resources:
           Properties:
             Path: /{token}
             Method: GET
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DynamoTable
 
 
 Outputs:
@@ -50,6 +66,10 @@ Outputs:
   API:
     Description: "API Gateway endpoint URL for Prod environment"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod"
+
+  DynamoDB:
+    Description: "dynamo db ARN"
+    Value: !GetAtt DynamoTable.Arn
 
   ShortenFunction:
     Description: "shorten Lambda Function ARN"

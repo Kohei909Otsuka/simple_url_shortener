@@ -37,4 +37,20 @@ aws dynamodb create-table --table-name 'dev_urls' \
   --key-schema '[{"AttributeName":"shorten","KeyType": "HASH"}]' \
   --provisioned-throughput '{"ReadCapacityUnits": 5,"WriteCapacityUnits": 5}' \
   --endpoint-url http://localhost:8000
-  ```
+```
+
+# デプロイ
+```
+sam package \
+  --template-file template.yaml \
+  --s3-bucket simple-url-shortener \
+  --output-template-file packaged.yaml \
+  --profile serverless
+
+sam deploy \
+  --template-file ./packaged.yaml \
+  --stack-name simple-url-shortener \
+  --capabilities CAPABILITY_IAM \
+  --profile serverless
+
+```

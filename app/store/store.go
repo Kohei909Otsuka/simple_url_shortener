@@ -6,8 +6,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"log"
 	"os"
 )
+
+var logger = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Llongfile)
 
 type UrlMapper interface {
 	Write(string, string) error
@@ -25,7 +28,7 @@ var globalSess *session.Session
 func genSess() (*session.Session, error) {
 	if globalSess == nil {
 		globalSess, err := session.NewSession(&aws.Config{
-			Region:   aws.String(os.Getenv("AWS_REGION")),
+			Region:   aws.String(os.Getenv("AWS_MY_REGION")),
 			Endpoint: aws.String(os.Getenv("DYNAMO_ENDPOINT")),
 		})
 		return globalSess, err
@@ -36,6 +39,7 @@ func genSess() (*session.Session, error) {
 func (dynamo DynamoDbUrlMapper) Write(origin string, shorten string) error {
 	sess, err := genSess()
 	if err != nil {
+		logger.Printf("Failed to create AWS session. %s", err)
 		return err
 	}
 
@@ -54,6 +58,7 @@ func (dynamo DynamoDbUrlMapper) Write(origin string, shorten string) error {
 
 	_, err = svc.PutItem(putParams)
 	if err != nil {
+		logger.Printf("Failed to PutItem. %s", err)
 		return err
 	}
 
@@ -63,6 +68,7 @@ func (dynamo DynamoDbUrlMapper) Write(origin string, shorten string) error {
 func (dynamo DynamoDbUrlMapper) Read(shorten string) (string, error) {
 	sess, err := genSess()
 	if err != nil {
+		logger.Printf("Failed to create AWS session. %s", err)
 		return "", err
 	}
 
@@ -78,6 +84,7 @@ func (dynamo DynamoDbUrlMapper) Read(shorten string) (string, error) {
 
 	result, err := svc.GetItem(getParams)
 	if err != nil {
+		logger.Printf("Failed to Fetch Item. %s", err)
 		return "", err
 	}
 
