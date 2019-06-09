@@ -1,81 +1,103 @@
 # simple_url_shortener
 
-This is a sample template for simple_url_shortener - Below is a brief explanation of what we have generated for you:
+It shows file struct below.
 
 ```bash
 .
-├── Makefile                    <-- Make to automate build
-├── README.md                   <-- This instructions file
-├── hello-world                 <-- Source code for a lambda function
-│   ├── main.go                 <-- Lambda function code
-│   └── main_test.go            <-- Unit tests
-└── template.yaml
+|-- app
+    |-- entity/                 <-- entity(from Clean-Architecture)
+    |-- lambda/                 <-- store aws lambda functions
+    |-- store/                  <-- store implementation to save urls
+    |-- usecase/                <-- use case(from Clean-Architecture)
+|-- Gopkg.lock                  <-- dependecy lock file by dep
+|-- Gopkg.toml                  <-- dependency file by dep
+|-- Makefile                    <-- Make to automate build
+|-- README.md                   <-- This file
+|-- dev_env.json                <-- json to store env vars for dev environment
+|-- docker-compose.yml          <-- docker-compose.yml to run aws dynamodb locally
+|-- template.yaml               <-- SAM template
 ```
 
 ## Requirements
 
-* AWS CLI already configured with Administrator permission
+* [AWS CLI](https://aws.amazon.com/jp/cli/)
+* [SAM CLI](https://github.com/awslabs/aws-sam-cli)
 * [Docker installed](https://www.docker.com/community-edition)
-* [Golang](https://golang.org)
+* [Golang version 1.x](https://golang.org)
+* [Deb](https://github.com/golang/dep)
 
 ## Setup process
 
 ### Installing dependencies
 
-In this example we use the built-in `go get` and the only dependency we need is AWS Lambda Go SDK:
+we use [deb](https://github.com/golang/dep) for Go lang third party library management.
+Following command will install all we need.
 
 ```shell
-go get -u github.com/aws/aws-lambda-go/...
+dep ensure
 ```
-
-**NOTE:** As you change your application code as well as dependencies during development, you might want to research how to handle dependencies in Golang at scale.
 
 ### Building
 
-Golang is a statically compiled language, meaning that in order to run it you have to build the executable target.
-
-You can issue the following command in a shell to build it:
+Build task is defined with Makefile.
+Following command will build each lambda function written in Go.
 
 ```shell
-GOOS=linux GOARCH=amd64 go build -o hello-world/hello-world ./hello-world
+make build
 ```
-
-**NOTE**: If you're not building the function on a Linux machine, you will need to specify the `GOOS` and `GOARCH` environment variables, this allows Golang to build your function for another system architecture and ensure compatibility.
 
 ### Local development
 
-**Invoking function locally through local API Gateway**
+There are one important point to consider when develop serverless application.
+
+Basically, AWS Lambda works like glue between AWS resources.
+
+Lambda is function in math, whose input is other AWS resource(Event), and output is other AWS resource too.
+
+The Problem is How can we run AWS resource(S3, Api Gateway, DynamoDB, SNS, SQS..etc) on our local machine?
+
+Fortunately some of them like S3, Api Gateway, DynamoDB have emulator, but some of them not.
+
+This app only uses Api Gateway, Lambda, DynamoDB, so that we can develop on local machine.
+
+However, when we wants to use other AWS resource which has no emulator, it's time to give up local development.
 
 ```bash
-sam local start-api
+# create named docker network
+# lambda and dynamodb are supposed on this named network later
+docker network create simple_url_shortener_aws-local
+
+# run docker container for dynamodb
+docker-compose up
+
+# create dynamodb table for dev env
+# the data saved in dynamodb will lost atter stop container
+# to prevent lost, u need to use docker volume
+aws dynamodb create-table --table-name 'dev_urls' \
+  --attribute-definitions '[{"AttributeName":"shorten","AttributeType": "S"}]' \
+  --key-schema '[{"AttributeName":"shorten","KeyType": "HASH"}]' \
+  --provisioned-throughput '{"ReadCapacityUnits": 5,"WriteCapacityUnits": 5}' \
+  --endpoint-url http://localhost:8000
+
+# start api gateway locally on docker network created before
+sam local start-api --docker-network simple_url_shortener_aws-local --env-vars dev_env.json
 ```
 
-If the previous command ran successfully you should now be able to hit the following local endpoint to invoke your function `http://localhost:3000/hello`
+```bash
+# call shorten api
+curl -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"origin":"https://origin.com"}' \
+  localhost:3000
+# => api respone will be like this {"shoten": "localhost:3000/abcdef"}
 
-**SAM CLI** is used to emulate both Lambda and API Gateway locally and uses our `template.yaml` to understand how to bootstrap this environment (runtime, where the source code is, etc.) - The following excerpt is what the CLI will read in order to initialize an API and its routes:
-
-```yaml
-...
-Events:
-    HelloWorld:
-        Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
-        Properties:
-            Path: /hello
-            Method: get
+# call restore api
+curl localhost:3000/abcdef
+# => api restore status will be 301 redirect, to https://origin.com
 ```
 
 ## Packaging and deployment
 
-AWS Lambda Python runtime requires a flat folder with all dependencies including the application. SAM will use `CodeUri` property to know where to look up for both application and dependencies:
-
-```yaml
-...
-    FirstFunction:
-        Type: AWS::Serverless::Function
-        Properties:
-            CodeUri: hello_world/
-            ...
-```
 
 First and foremost, we need a `S3 bucket` where we can upload our Lambda functions packaged as ZIP before we deploy anything - If you don't have a S3 bucket to store code artifacts then this is a good time to create one:
 
@@ -86,21 +108,24 @@ aws s3 mb s3://BUCKET_NAME
 Next, run the following command to package our Lambda function to S3:
 
 ```bash
+# NOTE: assuming u has aws profile named serverless which has enough permission to deploy your aws resources.
 sam package \
-    --output-template-file packaged.yaml \
-    --s3-bucket REPLACE_THIS_WITH_YOUR_S3_BUCKET_NAME
+  --template-file template.yaml \
+  --s3-bucket <bucket> \
+  --output-template-file packaged.yaml \
+  --profile serverless
 ```
 
 Next, the following command will create a Cloudformation Stack and deploy your SAM resources.
 
 ```bash
+# NOTE: assuming u has aws profile named serverless which has enough permission to deploy your aws resources.
 sam deploy \
-    --template-file packaged.yaml \
-    --stack-name simple_url_shortener \
-    --capabilities CAPABILITY_IAM
+  --template-file ./packaged.yaml \
+  --stack-name <stack> \
+  --capabilities CAPABILITY_IAM \
+  --profile serverless
 ```
-
-> **See [Serverless Application Model (SAM) HOWTO Guide](https://github.com/awslabs/serverless-application-model/blob/master/HOWTO.md) for more details in how to get started.**
 
 After deployment is complete you can run the following command to retrieve the API Gateway Endpoint URL:
 
@@ -108,79 +133,25 @@ After deployment is complete you can run the following command to retrieve the A
 aws cloudformation describe-stacks \
     --stack-name simple_url_shortener \
     --query 'Stacks[].Outputs'
-``` 
+```
 
-### Testing
+## Testing
+
+### unit test
 
 We use `testing` package that is built-in in Golang and you can simply run the following command to run our tests:
 
 ```shell
-go test -v ./hello-world/
-```
-# Appendix
-
-### Golang installation
-
-Please ensure Go 1.x (where 'x' is the latest version) is installed as per the instructions on the official golang website: https://golang.org/doc/install
-
-A quickstart way would be to use Homebrew, chocolatey or your linux package manager.
-
-#### Homebrew (Mac)
-
-Issue the following command from the terminal:
-
-```shell
-brew install golang
+go test -v ./app/...
 ```
 
-If it's already installed, run the following command to ensure it's the latest version:
+### integrate test
 
-```shell
-brew update
-brew upgrade golang
-```
+Iintegrate test is important for serverless app, but not yet written.
 
-#### Chocolatey (Windows)
+## Ref
 
-Issue the following command from the powershell:
-
-```shell
-choco install golang
-```
-
-If it's already installed, run the following command to ensure it's the latest version:
-
-```shell
-choco upgrade golang
-```
-## AWS CLI commands
-
-AWS CLI commands to package, deploy and describe outputs defined within the cloudformation stack:
-
-```bash
-sam package \
-    --template-file template.yaml \
-    --output-template-file packaged.yaml \
-    --s3-bucket REPLACE_THIS_WITH_YOUR_S3_BUCKET_NAME
-
-sam deploy \
-    --template-file packaged.yaml \
-    --stack-name simple_url_shortener \
-    --capabilities CAPABILITY_IAM \
-    --parameter-overrides MyParameterSample=MySampleValue
-
-aws cloudformation describe-stacks \
-    --stack-name simple_url_shortener --query 'Stacks[].Outputs'
-```
-
-## Bringing to the next level
-
-Here are a few ideas that you can use to get more acquainted as to how this overall process works:
-
-* Create an additional API resource (e.g. /hello/{proxy+}) and return the name requested through this new path
-* Update unit test to capture that
-* Package & Deploy
-
-Next, you can use the following resources to know more about beyond hello world samples and how others structure their Serverless applications:
-
-* [AWS Serverless Application Repository](https://aws.amazon.com/serverless/serverlessrepo/)
+- [aws lambda](https://docs.aws.amazon.com/ja_jp/lambda/latest/dg/welcome.html)
+- [aws sam doc on githbub](https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md)
+- [aws sam doc](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/what-is-sam.html)
+- [aws sam cli doc](https://github.com/awslabs/aws-sam-cli/tree/develop/docs)

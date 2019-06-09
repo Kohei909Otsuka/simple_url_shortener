@@ -5,7 +5,7 @@ services:
     image: amazon/dynamodb-local
     ports:
       - 8000:8000
-    networks:
-      - aws-local
 networks:
-  aws-local:
+  default:
+    external:
+      name: simple_url_shortener_aws-local
