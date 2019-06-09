@@ -149,6 +149,24 @@ go test -v ./app/...
 
 Iintegrate test is important for serverless app, but not yet written.
 
+## About custom domain
+
+We have two choice about domain
+
+1. use custom domain
+2. use aws gateway auto generate domain
+
+### 1. use custom domain
+
+I personally bought domain `kho21.com`.
+Then config AWS api gateway and AWS route 53 to use it.
+Plz [read](https://docs.aws.amazon.com/ja_jp/apigateway/latest/developerguide/how-to-custom-domains.html) this if u want use custom domain
+
+### 2. use aws gateway auto generate domain
+
+After deploy, AWS api gateway will generate url by stage like `https://{some}.execute-api.${region}.amazonaws.com/Prod`
+U can then config lambda env var BASE_URL from AWS console.
+
 ## Ref
 
 - [aws lambda](https://docs.aws.amazon.com/ja_jp/lambda/latest/dg/welcome.html)
