@@ -15,6 +15,7 @@ It shows file struct below.
 |-- README.md                   <-- This file
 |-- dev_env.json                <-- json to store env vars for dev environment
 |-- docker-compose.yml          <-- docker-compose.yml to run aws dynamodb locally
+|-- integration_test/           <-- integration test written in Ruby, Rspec
 |-- template.yaml               <-- SAM template
 ```
 
@@ -145,10 +146,13 @@ We use `testing` package that is built-in in Golang and you can simply run the f
 go test -v ./app/...
 ```
 
-### integrate test
+### integration test
 
-Iintegrate test is important for serverless app, but not yet written.
-
+```shell
+cd integration_test
+bundle install
+BASE_URL={your api gateway url} bundle exec rspec shorten_url_spec.rb
+```
 ## About custom domain
 
 We have two choice about domain
