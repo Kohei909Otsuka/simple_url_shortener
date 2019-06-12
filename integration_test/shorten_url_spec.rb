@@ -27,14 +27,14 @@ RSpec.describe 'Shorten URL API integrate test' do
       expect(shorten_url.path).to match %r{^\/\w{6}}
     end
 
-    # TODO: returns 500, implement is wrong
-    xit 'response 400 when params invalid' do
-      res = client.post(
-        base_url,
-        {}.to_json,
-        content_type: :json, accept: :json
-      )
-      expect(res.code).to eq 400
+    it 'response 400 when params invalid' do
+      expect do
+        client.post(
+          base_url,
+          {}.to_json,
+          content_type: :json, accept: :json
+        )
+      end.to raise_error(RestClient::BadRequest)
     end
   end
 
@@ -65,14 +65,12 @@ RSpec.describe 'Shorten URL API integrate test' do
       end
     end
 
-    # TODO: returns 301, implement is wrong
-    xit 'response 400 with invalid tokend' do
-      res = RestClient::Request.execute(
-        method: :get,
-        url: base_url + '/invalid_token',
-        max_redirects: 0
-      )
-      expect(res.code).to eq 400
+    it 'response 400 with invalid tokend' do
+      expect do
+        client.get(
+          base_url + '/invalid_token',
+        )
+      end.to raise_error(RestClient::BadRequest)
     end
 
     it 'response 403 with empty token path' do

@@ -22,7 +22,7 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 	var shortenReq ShortenReq
 	err := json.Unmarshal([]byte(req.Body), &shortenReq)
 
-	if err != nil {
+	if err != nil || shortenReq.Origin == "" {
 		return events.APIGatewayProxyResponse{
 			StatusCode: 400,
 			Body:       "could not parse json",

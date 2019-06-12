@@ -18,6 +18,13 @@ func handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 			Body:       err.Error(),
 		}, nil
 	}
+	if origin == "" {
+		return events.APIGatewayProxyResponse{
+			StatusCode: 400,
+			Body:       "not found",
+		}, nil
+	}
+
 	headers := make(map[string]string)
 	headers["Location"] = origin
 	return events.APIGatewayProxyResponse{
