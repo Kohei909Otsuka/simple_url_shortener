@@ -30,3 +30,15 @@ jobs:
     params:
       AWS_ACCESS_KEY_ID: ((aws_access_key_id))
       AWS_SECRET_ACCESS_KEY: ((aws_secret_access_key))
+
+- name: job_integration_test
+  plan:
+  - get: sus
+    trigger: true
+    params:
+      unpack: true
+    passed: [job_deploy]
+  - task: test
+    file: sus/ci/tast_integration_test.yml
+    params:
+      BASE_URL: ((base_url))
