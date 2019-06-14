@@ -162,7 +162,7 @@ We have two choice about domain
 
 ### 1. use custom domain
 
-I personally bought domain `kho21.com`.
+I personally bought domain.
 Then config AWS api gateway and AWS route 53 to use it.
 Plz [read](https://docs.aws.amazon.com/ja_jp/apigateway/latest/developerguide/how-to-custom-domains.html) this if u want use custom domain
 
@@ -170,6 +170,57 @@ Plz [read](https://docs.aws.amazon.com/ja_jp/apigateway/latest/developerguide/ho
 
 After deploy, AWS api gateway will generate url by stage like `https://{some}.execute-api.${region}.amazonaws.com/Prod`
 U can then config lambda env var BASE_URL from AWS console.
+
+### load test
+
+[vegeta](https://github.com/tsenart/vegeta) is easy simple tool.
+
+Ex: load test shorten api
+``` shell
+jq -ncM 'while(true; .+1) | {method: "POST", url: "{here your url}", body: {origin: "https://github.com/tsenart/vegeta"} | @base64 }' | \
+  vegeta attack -rate=100/s -lazy -format=json -duration=10s | \
+  tee results.bin | \
+  vegeta report
+```
+
+## CI
+
+This project uses [Concourse CI](https://concourse-ci.org/)
+
+Follow these steps to deal with ci
+
+Currently CI does
+
+1. run unit test
+2. deploy to aws
+3. run integration test
+
+NOTE! custom domain needs to run integration test
+
+``` shell
+cd ci
+docker-compose up -d
+# follow https://concoursetutorial.com/ to install tools and login
+
+# expect params.yml to define parameters like aws keys
+fly -t sus sp -p sus -c pipeline.yml --l params.yml
+
+# unpause pipeline for only first time
+fly -t sus unpause-pipeline --p sus zi
+
+# currently ci is connected S3, so upload !
+S3_BUCKET={your bucket} sh zip_on_s3.sh
+
+```
+
+params.yml should be look like this
+
+``` yml
+s3_bucket: {bucket u uploaded wiht zip_on_s3.sh}
+aws_access_key_id: {your aws access key id}
+aws_secret_access_key: {your aws secret access key}
+base_url: {your api base end point}
+```
 
 ## Ref
 

@@ -2,7 +2,7 @@ resources:
 - name: sus
   type: s3
   source:
-    bucket: sus-ci
+    bucket: ((s3_bucket))
     region_name: ap-northeast-1
     access_key_id: ((aws_access_key_id))
     secret_access_key: ((aws_secret_access_key))

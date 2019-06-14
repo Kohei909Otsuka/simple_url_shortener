@@ -26,9 +26,11 @@ Resources:
       PrimaryKey:
         Name: shorten
         Type: String
+      # wcu 50で200reqs/sまで耐える
+      # wcu 100で500reqs/sまで耐える
       ProvisionedThroughput:
-        ReadCapacityUnits: 2
-        WriteCapacityUnits: 2
+        ReadCapacityUnits: 3
+        WriteCapacityUnits: 3
   ShortenFunction:
     Type: AWS::Serverless::Function
     Properties:
