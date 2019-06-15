@@ -12,5 +12,5 @@ outputs:
 - name: build
 
 run:
-  path: gopath/src/github.com/Kohei909Otsuka/simple_url_shortener/ci/unit_test.sh
+  path: gopath/src/github.com/Kohei909Otsuka/simple_url_shortener/ci/task_unit_test.sh
 

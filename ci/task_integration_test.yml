@@ -8,7 +8,7 @@ inputs:
 - name: sus
 
 run:
-  path: sus/ci/integration_test.sh
+  path: sus/ci/task_integration_test.sh
 
 params:
   BASE_URL: ((base_url))
