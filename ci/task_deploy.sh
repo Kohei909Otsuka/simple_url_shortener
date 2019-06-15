@@ -1,19 +1,6 @@
 #!/bin/sh
 
-# NOTE: expecting compile is already done on local
-
 set -eu
-
-apk add gcc musl-dev jq
-
-# export PATH for installed python scritp
-export PATH=$PATH:/root/.local/bin
-
-# install aws cli
-pip3 install awscli --user
-
-# install sam cli
-pip3 install aws-sam-cli --user
 
 # package
 sam package \

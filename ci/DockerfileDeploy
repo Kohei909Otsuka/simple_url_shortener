@@ -1,0 +1,13 @@
+FROM python:alpine
+
+ENV PATH $PATH:/root/.local/bin
+
+RUN apk -v --update add \
+      gcc \
+      musl-dev \
+      jq \
+      && \
+    pip3 install awscli --user && \
+    pip3 install aws-sam-cli --user && \
+    rm /var/cache/apk/*
+

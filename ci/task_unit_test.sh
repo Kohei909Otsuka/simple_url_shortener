@@ -2,9 +2,6 @@
 
 set -eu
 
-# curl used to install dep, git used by dep internally
-apk add curl git make
-
 # move souce to $GOPATH in go lang docker container
 mkdir -p /go/src/github.com/Kohei909Otsuka/simple_url_shortener
 mv gopath/src/github.com/Kohei909Otsuka/simple_url_shortener/* \
@@ -13,9 +10,6 @@ mv gopath/src/github.com/Kohei909Otsuka/simple_url_shortener/* \
 # cd to repository root in GOPATH
 org_dir=$PWD
 cd /go/src/github.com/Kohei909Otsuka/simple_url_shortener
-
-# install dep
-curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
 
 # install dependecy
 dep ensure
