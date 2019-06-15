@@ -4,8 +4,6 @@
 
 set -eu
 
-echo "deploy started"
-
 apk add gcc musl-dev jq
 
 # export PATH for installed python scritp
@@ -19,13 +17,13 @@ pip3 install aws-sam-cli --user
 
 # package
 sam package \
-  --template-file ./sus/template.yaml \
+  --template-file template.yaml \
   --s3-bucket simple-url-shortener \
-  --output-template-file ./sus/packaged.yaml
+  --output-template-file packaged.yaml
 
 # deploy
 sam deploy \
-  --template-file ./sus/packaged.yaml \
+  --template-file packaged.yaml \
   --stack-name simple-url-shortener \
   --capabilities CAPABILITY_IAM \
   --region ap-northeast-1
@@ -38,7 +36,7 @@ aws cloudformation list-stack-resources \
 # enable api gateway log
 # https://github.com/awslabs/serverless-application-model/blob/master/docs/faq.rst#how-to-enable-api-gateway-logs
 # maybe want to use https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessapi later
-while read api_id
+while read api-id
 do
   aws apigateway update-stage \
     --rest-api-id <api-id> \
@@ -47,6 +45,4 @@ do
       op=replace,path=/*/*/logging/dataTrace,value=true \
       op=replace,path=/*/*/logging/loglevel,value=Info \
       op=replace,path=/*/*/metrics/
-done < rest-api_id.txt
-
-echo "deploy done"
+done < rest-api-id.txt

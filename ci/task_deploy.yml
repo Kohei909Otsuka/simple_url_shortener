@@ -5,10 +5,11 @@ image_resource:
   source: { repository: python, tag: alpine }
 
 inputs:
-- name: sus
+- name: build
 
 run:
-  path: sus/ci/deploy.sh
+  path: ci/deploy.sh
+  dir: build
 
 params:
   AWS_ACCESS_KEY_ID: ((aws_access_key_id))

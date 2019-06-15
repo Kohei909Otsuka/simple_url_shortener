@@ -8,6 +8,9 @@ inputs:
 - name: sus
   path: gopath/src/github.com/Kohei909Otsuka/simple_url_shortener
 
+outputs:
+- name: build
+
 run:
   path: gopath/src/github.com/Kohei909Otsuka/simple_url_shortener/ci/unit_test.sh
 
