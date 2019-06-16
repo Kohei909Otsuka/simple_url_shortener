@@ -197,27 +197,30 @@ Currently CI does
 
 NOTE! custom domain needs to run integration test
 
+NOTE! using aws ssm to store security info. See [oficial doc](https://concourse-ci.org/aws-ssm-credential-manager.html)
+
 ``` shell
 cd ci
-docker-compose up -d
-# follow https://concoursetutorial.com/ to install tools and login
 
-# expect params.yml to define parameters like aws keys
-fly -t sus sp -p sus -c pipeline.yml --l params.yml
+# create keys
+./keys/generate
 
-# unpause pipeline for only first time
-fly -t sus unpause-pipeline --p sus zi
+# run concourse in docker container
+sh start.sh
+
+# login and init target
+fly --target sus login --concourse-url http://127.0.0.1:8080 -u test -p test
+
+# setup pipeline(sp)
+fly -t sus sp -p sus -c pipeline.yml
+
+# unpause pipeline(up) for only first time
+fly -t sus up --p sus zi
 
 # currently ci is connected S3, so upload !
+cd ..
 S3_BUCKET={your bucket} sh zip_on_s3.sh
 
-```
-
-params.yml should be look like this
-
-``` yml
-ci_aws_access_key_id: {your aws access key id}
-ci_aws_secret_access_key: {your aws secret access key}
 ```
 
 ## Ref
@@ -226,3 +229,5 @@ ci_aws_secret_access_key: {your aws secret access key}
 - [aws sam doc on githbub](https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md)
 - [aws sam doc](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/what-is-sam.html)
 - [aws sam cli doc](https://github.com/awslabs/aws-sam-cli/tree/develop/docs)
+- [concourse ci doc](https://concourse-ci.org/docs.html)
+- [concourse ci tutorial](https://concoursetutorial.com/)

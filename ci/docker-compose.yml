@@ -16,13 +16,16 @@ services:
     ports: ["8080:8080"]
     volumes: ["./keys/web:/concourse-keys"]
     environment:
-      CONCOURSE_EXTERNAL_URL: http://localhost:8080
-      CONCOURSE_POSTGRES_HOST: db
-      CONCOURSE_POSTGRES_USER: concourse_user
-      CONCOURSE_POSTGRES_PASSWORD: concourse_pass
-      CONCOURSE_POSTGRES_DATABASE: concourse
-      CONCOURSE_ADD_LOCAL_USER: test:test
-      CONCOURSE_MAIN_TEAM_LOCAL_USER: test
+      - CONCOURSE_EXTERNAL_URL=http://localhost:8080
+      - CONCOURSE_POSTGRES_HOST=db
+      - CONCOURSE_POSTGRES_USER=concourse_user
+      - CONCOURSE_POSTGRES_PASSWORD=concourse_pass
+      - CONCOURSE_POSTGRES_DATABASE=concourse
+      - CONCOURSE_ADD_LOCAL_USER=test:test
+      - CONCOURSE_MAIN_TEAM_LOCAL_USER=test
+      - CONCOURSE_AWS_SSM_REGION=ap-northeast-1
+      - CONCOURSE_AWS_SSM_ACCESS_KEY
+      - CONCOURSE_AWS_SSM_SECRET_KEY
 
   worker:
     image: concourse/concourse
