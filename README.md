@@ -216,10 +216,8 @@ S3_BUCKET={your bucket} sh zip_on_s3.sh
 params.yml should be look like this
 
 ``` yml
-s3_bucket: {bucket u uploaded wiht zip_on_s3.sh}
-aws_access_key_id: {your aws access key id}
-aws_secret_access_key: {your aws secret access key}
-base_url: {your api base end point}
+ci_aws_access_key_id: {your aws access key id}
+ci_aws_secret_access_key: {your aws secret access key}
 ```
 
 ## Ref
